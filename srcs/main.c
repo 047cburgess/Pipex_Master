@@ -96,7 +96,7 @@ int	main(int ac, char **av, char **envp)
 	// WHAT DO YOU DO IF THE 2nd CHILD FAILS BUT 1st DIDNT?
 		// Can you still just wait for it at the end even though its not worked? If so, what if there are 5 children etc?
 		if (pipe.pid2 == -1)
-		perror("fork 2");
+			perror("fork 2");
 	// Manage the 2nd child for the second command
 	if (pipe.pid2 == 0)
 	{
