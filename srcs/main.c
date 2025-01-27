@@ -6,15 +6,11 @@
 /*   By: caburges <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 20:28:11 by caburges          #+#    #+#             */
-/*   Updated: 2025/01/24 20:28:12 by caburges         ###   ########.fr       */
+/*   Updated: 2025/01/27 15:30:15 by caburges         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <unistd.h>
-#include <fcntl.h>
-#include <stdio.h>
 #include "pipex.h"
-#include "libft.h"
 
 
 //NEW PLAN
@@ -80,41 +76,56 @@ int	main(int ac, char **av, char **envp)
 {
 	t_pipe	pipe;
 
-	// Check that ac is 5
 	if (ac != 5)
 	{
 		ft_putendl_fd("Usage: infile cmd1 cmd2 outfile", 2);
 		return (1);
 	}
-	// Create the pipe
-	set_up_pipe(&pipe);
+	init_struct(&pipe);
+	set_up_pipe(pipe.pipe_fd);
 	pipe.pid1 = fork();
-	if (pipe.pid1 == -1) // if the fork failed (-1 in the parent)
+	if (pipe.pid1 == -1)
 	{
 		perror("fork 1");
-		// Close the pipe && exit
 		close(pipe.pipe_fd[0]);
 		close(pipe.pipe_fd[1]);
 		return (1);
 	}
-	// Manage the first child for first command
 	if (pipe.pid1 == 0)
 	{
-		// Manage the 1st child for first command
-		// Eventually exits in here
+		close(pipe.pipe_fd[0]);
+		pipe.in_fd = open(av[1], O_RDONLY);
+		if (pipe.in_fd < 0)
+		{
+			close(pipe.pipe_fd[1]);
+			perror("open");
+			exit(EXIT_FAILURE);
+		}
+		dup2(pipe.in_fd, STDIN_FILENO);
+		close(pipe.in_fd);
+		dup2(pipe.pipe_fd[1], STDOUT_FILENO);
+		close(pipe.pipe_fd[1]);
+		execute_command(&pipe, av[2], envp);
 	}
-	// Create second child for 2nd command : we know the 1st one succeded if we got here
 	pipe.pid2 = fork();
-	// WHAT DO YOU DO IF THE 2nd CHILD FAILS BUT 1st DIDNT?
-		// Can you still just wait for it at the end even though its not worked? If so, what if there are 5 children etc?
 		if (pipe.pid2 == -1)
 			perror("fork 2");
-	// Manage the 2nd child for the second command
 	if (pipe.pid2 == 0)
 	{
-		// Eventually exits in here
+		close(pipe.pipe_fd[1]);
+		pipe.out_fd = open(av[4], O_RDWR | O_CREAT | O_TRUNC, 0644);
+		if (pipe.out_fd < 0)
+		{
+			close(pipe.pipe_fd[1]);
+			perror("open");
+			exit(EXIT_FAILURE);
+		}
+		dup2(pipe.out_fd, STDOUT_FILENO);
+		close(pipe.out_fd);
+		dup2(pipe.pipe_fd[0], STDIN_FILENO);
+		close(pipe.pipe_fd[0]);
+		execute_command(&pipe, av[3], envp);
 	}
-	// WAIT FOR THE 2 comannds to finish
 	close(pipe.pipe_fd[0]);
 	close(pipe.pipe_fd[1]);
 	if (pipe.pid1 != -1)

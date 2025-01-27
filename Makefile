@@ -1,7 +1,13 @@
 NAME = pipex
-CFLAGS = -g -Wall -Werror -Wextra
+CFLAGS = -g #-Wall -Werror -Wextra
 
-SRCS = srcs/main.c 
+SRCS = srcs/main.c \
+	srcs/execute_command.c \
+	srcs/ft_free.c \
+	srcs/pipe.c \
+	srcs/init.c \
+	srcs/clean_up.c
+
 OBJS = $(SRCS:.c=.o)
 
 INCLUDES_DIR = includes
@@ -18,7 +24,7 @@ $(LIBFT):
 	make -C $(LIBFT_DIR)
 
 %.o: %.c
-	cc $(CFLAGS) -I $(INCLUDES_DIR) -I $(LIBFT_DIR) $< -o $@
+	cc $(CFLAGS) -I$(INCLUDES_DIR) -I$(LIBFT_DIR) -c $< -o $@
 
 clean:
 	make clean -C $(LIBFT_DIR)
