@@ -6,7 +6,7 @@
 /*   By: caburges <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 10:48:18 by caburges          #+#    #+#             */
-/*   Updated: 2025/01/27 16:00:01 by caburges         ###   ########.fr       */
+/*   Updated: 2025/01/27 16:31:01 by caburges         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ void	execute_command(t_pipe *data, char *cmd, char **envp)
 		find_executable(data, data->args[0], data->split_paths);
 	if (data->path && data->args && envp)
 		execve(data->path, data->args, envp);
-	clean_up(data);	
+	clean_up(data);
 	exit(EXIT_FAILURE);
 }
 

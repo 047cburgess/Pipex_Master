@@ -1,3 +1,0 @@
-Hello this is my infile!
-2nd line here!
-3rd line is here!

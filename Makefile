@@ -6,7 +6,8 @@ SRCS = srcs/main.c \
 	srcs/ft_free.c \
 	srcs/pipe.c \
 	srcs/init.c \
-	srcs/clean_up.c
+	srcs/clean_up.c \
+	srcs/fork.c
 
 OBJS = $(SRCS:.c=.o)
 

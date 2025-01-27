@@ -6,71 +6,11 @@
 /*   By: caburges <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 20:28:11 by caburges          #+#    #+#             */
-/*   Updated: 2025/01/27 15:30:15 by caburges         ###   ########.fr       */
+/*   Updated: 2025/01/27 16:29:32 by caburges         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
-
-
-//NEW PLAN
-//PARENT:
-//	CREATE THE PIPE
-//	FORK 1ST CHILD
-//		if in_pid == 0
-//			complete its process
-//				close the read end of pipe
-//				open the infile
-//				redirect to stdinput so child reqds fro, the file insteqd
-//				close the infile
-//				redirect stdout to the write end (to write to pipe instead of stdout))
-//				close write end of pipe (because the stdout is now linked so you dont want 2 holes)
-//				execute the 1st command
-//			will exit at the end of it by EXECVE or clean up if error anywhere
-//	FORK 2ND CHILD
-//		if out_pid == 0
-//			complete its process
-//				close the write end of pipe
-//				open the outfile
-//				redirect to stdoutput
-//				close the outfile
-//				redirect the read end of pipe to stdinput (to read stdinput)
-//				close the read end of the pipe
-//				execute the 2nd cmmd
-//			will exit at the end of it by EXECVE or clean up if error
-//	WAIT FOR BOTH CHILDREN TO FINISH
-//	CLEAN UP ANY MEMORY, 
-
-
-
-
-
-
-
-// REMEMBER: Once execve is called, the process is DESTROYED, including mallocs ect
-// FORKS: Child process is an exact copy of the parent AT THE MOMENT of the fork call -> doesn't go above
-// 	Parent: Fork returns the PID of the child
-// 	Child: Fork returns 0 -> that's how you know it's a child
-// STRUCTURE:
-// 	int pipes[2];
-// 	int in_fd;
-// 	int out_fd;
-// 	char **args;
-// 	char *full_path
-// ERRORS IN THE CHILDREN:
-// Child 1:
-// 	if any error, exit immediately, make sure to close fds etc
-// Child 2:
-// 	Nothing to do, as if 1st exits it shuts its fd 
-// PARENT:
-// 	Wait for both children
-// 		Wait child 1:
-// 		Check exit status
-// 			still wait for the second child
-// 			return 1
-// 		Wait child 2:
-// 		Check exit status
-// 			if failed, just return 1
 
 int	main(int ac, char **av, char **envp)
 {
@@ -85,104 +25,17 @@ int	main(int ac, char **av, char **envp)
 	set_up_pipe(pipe.pipe_fd);
 	pipe.pid1 = fork();
 	if (pipe.pid1 == -1)
-	{
 		perror("fork 1");
-		close(pipe.pipe_fd[0]);
-		close(pipe.pipe_fd[1]);
-		return (1);
-	}
 	if (pipe.pid1 == 0)
-	{
-		close(pipe.pipe_fd[0]);
-		pipe.in_fd = open(av[1], O_RDONLY);
-		if (pipe.in_fd < 0)
-		{
-			close(pipe.pipe_fd[1]);
-			perror("open");
-			exit(EXIT_FAILURE);
-		}
-		dup2(pipe.in_fd, STDIN_FILENO);
-		close(pipe.in_fd);
-		dup2(pipe.pipe_fd[1], STDOUT_FILENO);
-		close(pipe.pipe_fd[1]);
-		execute_command(&pipe, av[2], envp);
-	}
+		run_command_1(&pipe, av, envp);
 	pipe.pid2 = fork();
-		if (pipe.pid2 == -1)
-			perror("fork 2");
+	if (pipe.pid2 == -1)
+		perror("fork 2");
 	if (pipe.pid2 == 0)
-	{
-		close(pipe.pipe_fd[1]);
-		pipe.out_fd = open(av[4], O_RDWR | O_CREAT | O_TRUNC, 0644);
-		if (pipe.out_fd < 0)
-		{
-			close(pipe.pipe_fd[1]);
-			perror("open");
-			exit(EXIT_FAILURE);
-		}
-		dup2(pipe.out_fd, STDOUT_FILENO);
-		close(pipe.out_fd);
-		dup2(pipe.pipe_fd[0], STDIN_FILENO);
-		close(pipe.pipe_fd[0]);
-		execute_command(&pipe, av[3], envp);
-	}
-	close(pipe.pipe_fd[0]);
-	close(pipe.pipe_fd[1]);
+		run_command_2(&pipe, av, envp);
+	close_pipe(&pipe);
 	if (pipe.pid1 != -1)
 		waitpid(pipe.pid1, NULL, 0);
 	if (pipe.pid2 != -1)
 		waitpid(pipe.pid2, NULL, 0);
 }
-	// Check ac values for right number of arguments (ac == 5)
-	//
-	// Initialise structure (with all mallocs & fds) to avoid valgrind problems
-	// 	Structure to make it easier to free everything in case of failure
-	//
-	// Check & open input and output files (fds)
-	// 	Store their file descriptors in the structure
-	// 		INFILE: open as READ ONLY
-	// 		OUTFILE: open as WRITE ONLY, O_CREATE, O_TRUNC, 0644 -> if creating, need to give the file permissions
-	//
-	// Create the fd pipe:
-	// 	pipe[0] --> Read end ( THEN TO OUTPUT FILE )
-	// 	pipe[1] --> Write end ( FIRST READS INPUT :wq
-	// 	FILE )
-	//
-	// Create the forks (2, one for each command)
-	// 	Child 1 / Cmd1:
-	// 		Redirect stdin to the input file
-	// 		Redirect stdout to the write end of the pipe
-	// 		Close both ends of pipe
-	// 	Child 2 / Cmd2:
-	// 		Redirect stdin to the read end of the pipe
-	// 		Redirect stdout to the outputfile
-	// 		Close both ends of pipe
-	// 	For each child
-	// 		Redirect the input/output fds to the stdin /stdout
-	// 		Close unused pipe ends in the child process
-	//
-	// Parse Commands (argv[2] or argv[3]) passing envp
-	// 	Split it into an array (cmd, args) must end in NULL!
-	// 	Find path to cmd executable with envp and prog name split[0]
-	// 		Loop through the envp[] from main
-	// 			Use ftstrncmp to find "PATH="
-	// 			Set a char * pointer to directly after the = -> (envp[i] + 5) OR (ft_strchr = + 1)
-	// 			Make sure to have a condition in case PATH not found in environment variables?
-	// 		Split the PATH directories by : separator
-	// 			Because they are stored in an array
-	// 		Parse the path split to find the directories and check each directory for command using access
-	// 			for each path, strjoin the path with the command (ADDING AN EXTRA / INBETWEEN ) and see if access is good
-	//
-	//Call execve
-	//	Pass full path to executable as first argument (the successful strjoin access)
-	//	Pass the args array as second argument (correct to still include the program name, so the full split)
-	//	Pass envp array from main as third argument
-	//		No need to free the stuff because kernel takes over -> it's replaced
-	//		But still need to add the frees in case exec fails
-	//
-	//Parent process management
-	//	Close all pipe ends after forks to avoid zombies
-	//	Wait for child process to finish
-	//	Free all mallocs
-
-		
