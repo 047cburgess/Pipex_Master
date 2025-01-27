@@ -6,7 +6,7 @@
 /*   By: caburges <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 16:14:58 by caburges          #+#    #+#             */
-/*   Updated: 2025/01/27 16:27:05 by caburges         ###   ########.fr       */
+/*   Updated: 2025/01/27 16:43:30 by caburges         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ void	run_command_2(t_pipe *pipe, char **av, char **envp)
 		exit(EXIT_FAILURE);
 	}
 	dup2(pipe->out_fd, STDOUT_FILENO);
-	close(pipe->in_fd);
+	close(pipe->out_fd);
 	dup2(pipe->pipe_fd[0], STDIN_FILENO);
 	close(pipe->pipe_fd[0]);
 	execute_command(pipe, av[3], envp);
