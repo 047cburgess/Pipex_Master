@@ -14,6 +14,9 @@
 
 void	ft_free(char **var)
 {
-	free(*var);
-	*var = NULL;
+	if (var && *var)
+	{
+		free(*var);
+		*var = NULL;
+	}
 }

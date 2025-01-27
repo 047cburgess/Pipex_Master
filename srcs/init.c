@@ -19,3 +19,23 @@ void	init_struct(t_pipe *data)
 	data->split_paths = NULL;
 	data->path = NULL;
 }
+
+int	check_ac(int ac)
+{
+	if (ac != 5)
+	{
+		ft_putendl_fd("Usage: infile \"cmd1\" \"cmd2\" outfile", 2);
+		return (0);
+	}
+	return (1);
+}
+
+int	check_envp(char **envp)
+{
+	if (*envp == NULL)
+	{
+		ft_putendl_fd("Error: no envp set", 2);
+		return (0);
+	}
+	return (1);
+}

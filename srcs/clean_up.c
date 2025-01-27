@@ -15,12 +15,14 @@
 void	free_split(char **array);
 void	close_pipe(t_pipe *data);
 
-void	clean_up(t_pipe *data)
+void	clean_up_exit(t_pipe *data, int status)
 {
 	close_pipe(data);
 	free_split(data->args);
 	free_split(data->split_paths);
+	data->split_paths = NULL;
 	ft_free(&data->path);
+	exit(status);
 }
 
 void	free_split(char **array)
@@ -28,11 +30,11 @@ void	free_split(char **array)
 	int	i;
 
 	i = 0;
-	if (array)
+	if (array != NULL)
 	{
 		while (array[i] != NULL)
 		{
-			free(array[i]);
+			ft_free(&array[i]);
 			i++;
 		}
 		free(array);
@@ -41,6 +43,8 @@ void	free_split(char **array)
 
 void	close_pipe(t_pipe *data)
 {
-	close(data->pipe_fd[0]);
-	close(data->pipe_fd[1]);
+	if (data->pipe_fd[0] >= 0)
+		close(data->pipe_fd[0]);
+	if (data->pipe_fd[1] >= 0)
+		close(data->pipe_fd[1]);
 }

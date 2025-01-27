@@ -16,11 +16,8 @@ int	main(int ac, char **av, char **envp)
 {
 	t_pipe	pipe;
 
-	if (ac != 5)
-	{
-		ft_putendl_fd("Usage: infile cmd1 cmd2 outfile", 2);
+	if ((!check_ac(ac)) || (!check_envp(envp)))
 		return (1);
-	}
 	init_struct(&pipe);
 	set_up_pipe(pipe.pipe_fd);
 	pipe.pid1 = fork();

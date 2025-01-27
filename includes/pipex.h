@@ -34,6 +34,8 @@ typedef struct s_pipe
 	char	*path;
 }	t_pipe;
 
+int	check_ac(int ac);
+int	check_envp(char **envp);
 void	init_struct(t_pipe *data);
 void	set_up_pipe(int *pipe_fd);
 void	run_command_1(t_pipe *pipe, char **av, char **envp);
@@ -41,7 +43,7 @@ void	run_command_2(t_pipe *pipe, char **av, char **envp);
 void	execute_command(t_pipe *pipe, char *cmd, char **envp);
 
 // CLEAN UP SHIT
-void	clean_up(t_pipe *data);
+void	clean_up_exit(t_pipe *data, int status);
 void	free_split(char **array);
 void	close_pipe(t_pipe *data);
 void	ft_free(char **var);
