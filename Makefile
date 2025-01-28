@@ -1,5 +1,5 @@
 NAME = pipex
-CFLAGS = -g #-Wall -Werror -Wextra
+CFLAGS = -g -Wall -Werror -Wextra
 
 SRCS = srcs/main.c \
 	srcs/execute_command.c \
