@@ -6,7 +6,7 @@
 /*   By: caburges <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 14:38:48 by caburges          #+#    #+#             */
-/*   Updated: 2025/01/27 16:31:24 by caburges         ###   ########.fr       */
+/*   Updated: 2025/01/28 16:35:22 by caburges         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,9 +19,10 @@ void	clean_up_exit(t_pipe *data, int status)
 {
 	close_pipe(data);
 	free_split(data->args);
+	data->args = NULL;
 	free_split(data->split_paths);
 	data->split_paths = NULL;
-	ft_free(&data->path);
+	free(data->path);
 	exit(status);
 }
 
@@ -47,4 +48,10 @@ void	close_pipe(t_pipe *data)
 		close(data->pipe_fd[0]);
 	if (data->pipe_fd[1] >= 0)
 		close(data->pipe_fd[1]);
+}
+
+void	exit_malloc(t_pipe *data)
+{
+	perror("malloc");
+	clean_up_exit(data, EXIT_FAILURE);
 }
